@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -409,19 +408,133 @@
 
 <script>
 /**
- * Ultra Fast 2D Realistic Vector Highway Racer Engine
+ * High Speed Synthwave Racer Engine with Dynamic Audio & Synthesized Music
  */
 
-// Synthesized Audio Engine using Web Audio API
 class AudioFX {
     constructor() {
         this.ctx = null;
         this.enabled = true;
+        this.isMusicPlaying = false;
+        this.musicStep = 0;
+        this.musicTimer = null;
     }
 
     init() {
         if (!this.ctx) {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    // High Energy Synthwave Electronic Music Synthesizer Loop (150 BPM)
+    startMusic() {
+        if (!this.enabled) return;
+        this.init();
+        if (this.isMusicPlaying) return;
+        this.isMusicPlaying = true;
+        this.musicStep = 0;
+
+        const tempo = 150;
+        const stepTime = (60 / tempo) / 4; // 16th note interval
+
+        // Bass Synth Sequence (Past the Red Track Motif)
+        const bassNotes = [110, 110, 130.81, 110, 146.83, 110, 130.81, 98.00]; // A2, C3, D3, G2
+        const leadNotes = [440, 0, 523.25, 440, 587.33, 0, 659.25, 523.25]; // A4, C5, D5, E5
+
+        this.musicTimer = setInterval(() => {
+            if (!this.isMusicPlaying || !this.enabled || !this.ctx) return;
+            const now = this.ctx.currentTime;
+
+            // 1. Kick Drum (Every Quarter Note)
+            if (this.musicStep % 4 === 0) {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.exponentialRampToValueAtTime(38, now + 0.08);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            }
+
+            // 2. Hi-Hat (Off-Beat)
+            if (this.musicStep % 2 === 1) {
+                const bufferSize = this.ctx.sampleRate * 0.03;
+                const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+                const noise = this.ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = this.ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(6000, now);
+
+                const gain = this.ctx.createGain();
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                noise.start(now);
+            }
+
+            // 3. Arpeggiated Driving Bass
+            const bassFreq = bassNotes[Math.floor(this.musicStep / 2) % bassNotes.length];
+            if (bassFreq > 0) {
+                const bassOsc = this.ctx.createOscillator();
+                const bassGain = this.ctx.createGain();
+                const bassFilter = this.ctx.createBiquadFilter();
+
+                bassOsc.type = 'sawtooth';
+                bassOsc.frequency.setValueAtTime(bassFreq, now);
+
+                bassFilter.type = 'lowpass';
+                bassFilter.frequency.setValueAtTime(800, now);
+
+                bassGain.gain.setValueAtTime(0.18, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.01, now + stepTime * 1.5);
+
+                bassOsc.connect(bassFilter);
+                bassFilter.connect(bassGain);
+                bassGain.connect(this.ctx.destination);
+                bassOsc.start(now);
+                bassOsc.stop(now + stepTime * 1.5);
+            }
+
+            // 4. Synth Lead Melody Hook
+            const leadFreq = leadNotes[this.musicStep % leadNotes.length];
+            if (leadFreq > 0 && Math.random() > 0.2) {
+                const leadOsc = this.ctx.createOscillator();
+                const leadGain = this.ctx.createGain();
+                leadOsc.type = 'square';
+                leadOsc.frequency.setValueAtTime(leadFreq, now);
+
+                leadGain.gain.setValueAtTime(0.08, now);
+                leadGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+                leadOsc.connect(leadGain);
+                leadGain.connect(this.ctx.destination);
+                leadOsc.start(now);
+                leadOsc.stop(now + 0.15);
+            }
+
+            this.musicStep = (this.musicStep + 1) % 32;
+        }, stepTime * 1000);
+    }
+
+    stopMusic() {
+        this.isMusicPlaying = false;
+        if (this.musicTimer) {
+            clearInterval(this.musicTimer);
+            this.musicTimer = null;
         }
     }
 
@@ -524,7 +637,7 @@ const Engine = {
     highScore: 0,
     distance: 0,
     fuel: 100,
-    speed: 12, // High Speed Default
+    speed: 12,
     baseSpeed: 12,
     nitroTimer: 0,
     shakeTimer: 0,
@@ -606,6 +719,8 @@ const Engine = {
 
     start() {
         audio.init();
+        audio.startMusic();
+
         this.score = 0;
         this.coins = 0;
         this.distance = 0;
@@ -617,7 +732,6 @@ const Engine = {
         this.particles = [];
         this.speedLines = [];
 
-        // Generate speed line particles
         for (let i = 0; i < 20; i++) {
             this.speedLines.push({
                 x: Math.random() * this.width,
@@ -675,22 +789,28 @@ const Engine = {
         document.getElementById('btn-pause').onclick = () => {
             if (!this.isRunning) return;
             this.isPaused = !this.isPaused;
+            if (this.isPaused) audio.stopMusic();
+            else audio.startMusic();
             document.getElementById('screen-pause').classList.toggle('hidden', !this.isPaused);
         };
 
         document.getElementById('btn-resume').onclick = () => {
             this.isPaused = false;
+            audio.startMusic();
             document.getElementById('screen-pause').classList.add('hidden');
         };
 
         document.getElementById('btn-menu').onclick = () => {
             this.isRunning = false;
+            audio.stopMusic();
             document.getElementById('screen-gameover').classList.add('hidden');
             document.getElementById('screen-start').classList.remove('hidden');
         };
 
         document.getElementById('btn-audio').onclick = () => {
             audio.enabled = !audio.enabled;
+            if (!audio.enabled) audio.stopMusic();
+            else if (this.isRunning && !this.isPaused) audio.startMusic();
             document.getElementById('btn-audio').innerText = audio.enabled ? '🔊' : '🔇';
         };
 
@@ -807,12 +927,11 @@ const Engine = {
     update(dt) {
         if (!this.isRunning || this.isPaused) return;
 
-        // Nitro Activation Check
         const manualNitro = this.keyState.nitro || this.touchNitro;
         const isNitroActive = this.nitroTimer > 0 || manualNitro;
 
         if (manualNitro) {
-            this.fuel -= dt * 6.0; // Consume fuel when manually holding nitro
+            this.fuel -= dt * 6.0;
         }
 
         if (isNitroActive) {
@@ -820,7 +939,6 @@ const Engine = {
             this.nitroTimer = Math.max(0, this.nitroTimer - dt);
             document.getElementById('nitro-banner').style.opacity = '1';
 
-            // Exhaust Flame Particles
             this.particles.push({
                 x: this.player.x + this.player.width * 0.3 + (Math.random() * 4 - 2),
                 y: this.player.y + this.player.height,
@@ -842,7 +960,6 @@ const Engine = {
             document.getElementById('nitro-banner').style.opacity = '0';
         }
 
-        // Fuel Depletion
         this.fuel -= dt * 2.2;
         if (this.fuel <= 0) {
             this.fuel = 0;
@@ -850,7 +967,6 @@ const Engine = {
             return;
         }
 
-        // Steering Logic
         let dir = 0;
         if (this.keyState.left || this.touchDir === -1) dir = -1;
         if (this.keyState.right || this.touchDir === 1) dir = 1;
@@ -858,25 +974,21 @@ const Engine = {
         const steerSpeed = this.width * 1.1 * dt;
         this.player.x += dir * steerSpeed;
 
-        // Road Bounds Guard
         if (this.player.x < this.roadLeft + 6) this.player.x = this.roadLeft + 6;
         if (this.player.x + this.player.width > this.roadLeft + this.roadWidth - 6) {
             this.player.x = this.roadLeft + this.roadWidth - this.player.width - 6;
         }
 
-        // Distance & Score Increment
         this.distance += this.speed * dt * 6;
         this.score += Math.floor(this.speed * dt * 12);
 
         this.spawnTraffic();
         this.spawnItems();
 
-        // Update Traffic
         for (let i = this.traffic.length - 1; i >= 0; i--) {
             const t = this.traffic[i];
             t.y += (this.speed - t.speed + 4) * dt * 60 * 0.14;
 
-            // Collision Check
             if (!isNitroActive &&
                 this.player.x < t.x + t.width - 4 &&
                 this.player.x + this.player.width > t.x + 4 &&
@@ -893,7 +1005,6 @@ const Engine = {
                 this.player.x + this.player.width > t.x &&
                 this.player.y < t.y + t.height &&
                 this.player.y + this.player.height > t.y) {
-                // Destroy traffic in Nitro mode
                 this.triggerCrashEffect(t.x + t.width / 2, t.y + t.height / 2);
                 this.traffic.splice(i, 1);
                 this.score += 80;
@@ -903,7 +1014,6 @@ const Engine = {
             if (t.y > this.height + 60) this.traffic.splice(i, 1);
         }
 
-        // Collectibles Update
         for (let i = this.items.length - 1; i >= 0; i--) {
             const item = this.items[i];
             item.y += this.speed * dt * 60 * 0.14;
@@ -932,7 +1042,6 @@ const Engine = {
             if (item.y > this.height + 40) this.items.splice(i, 1);
         }
 
-        // Particles Update
         for (let i = this.particles.length - 1; i >= 0; i--) {
             const p = this.particles[i];
             p.x += p.vx;
@@ -941,7 +1050,6 @@ const Engine = {
             if (p.life <= 0) this.particles.splice(i, 1);
         }
 
-        // Speed Lines Update
         this.speedLines.forEach(l => {
             l.y += (this.speed * 2.5) + l.speed;
             if (l.y > this.height) {
@@ -970,6 +1078,7 @@ const Engine = {
 
     gameOver(reason) {
         this.isRunning = false;
+        audio.stopMusic();
         if (this.score > this.highScore) {
             this.highScore = this.score;
         }
@@ -991,22 +1100,18 @@ const Engine = {
     render() {
         this.ctx.save();
 
-        // Screen Shake Effect
         if (this.shakeTimer > 0) {
             const dx = (Math.random() - 0.5) * 18;
             const dy = (Math.random() - 0.5) * 18;
             this.ctx.translate(dx, dy);
         }
 
-        // Background Asphalt
         this.ctx.fillStyle = '#080a0f';
         this.ctx.fillRect(0, 0, this.width, this.height);
 
-        // Road Surface
         this.ctx.fillStyle = '#121620';
         this.ctx.fillRect(this.roadLeft, 0, this.roadWidth, this.height);
 
-        // Neon Borders
         this.ctx.strokeStyle = '#00f0ff';
         this.ctx.lineWidth = 5;
         this.ctx.shadowBlur = 12;
@@ -1020,7 +1125,6 @@ const Engine = {
         this.ctx.stroke();
         this.ctx.shadowBlur = 0;
 
-        // Dynamic Animated Dashed Lanes
         this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
         this.ctx.lineWidth = 4;
         this.ctx.setLineDash([28, 28]);
@@ -1035,7 +1139,6 @@ const Engine = {
         }
         this.ctx.setLineDash([]);
 
-        // Motion Speed Lines
         this.ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
         this.ctx.lineWidth = 1.5;
         this.speedLines.forEach(l => {
@@ -1045,7 +1148,6 @@ const Engine = {
             this.ctx.stroke();
         });
 
-        // Collectibles Rendering
         this.items.forEach(item => {
             this.ctx.save();
             this.ctx.translate(item.x, item.y);
@@ -1090,7 +1192,6 @@ const Engine = {
             this.ctx.restore();
         });
 
-        // Traffic Vehicles
         this.traffic.forEach(t => {
             this.drawRealisticCar(
                 this.ctx,
@@ -1105,7 +1206,6 @@ const Engine = {
             );
         });
 
-        // Player Sports Car
         if (this.player) {
             const carSkin = CAR_DATABASE[this.selectedCarIdx];
             this.drawRealisticCar(
@@ -1121,7 +1221,6 @@ const Engine = {
             );
         }
 
-        // Particle FX
         this.particles.forEach(p => {
             this.ctx.fillStyle = p.color;
             this.ctx.globalAlpha = Math.max(0, p.life * 2);
@@ -1134,7 +1233,6 @@ const Engine = {
         this.ctx.restore();
     },
 
-    // Ultra Detailed Vector Sports Car Rendering (Top-Down)
     drawRealisticCar(ctx, cx, cy, width, height, mainColor, accentColor, hasSpoiler = true, isEnemy = false) {
         ctx.save();
         ctx.translate(cx, cy);
@@ -1146,38 +1244,32 @@ const Engine = {
         const w = width;
         const h = height;
 
-        // Ambient Under-Car Shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
         ctx.beginPath();
         ctx.ellipse(0, 2, w * 0.55, h * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Wheels / Tires
         ctx.fillStyle = '#151515';
         const wheelW = w * 0.22;
         const wheelH = h * 0.22;
-        // Front wheels
         ctx.fillRect(-w * 0.52, -h * 0.38, wheelW, wheelH);
         ctx.fillRect(w * 0.52 - wheelW, -h * 0.38, wheelW, wheelH);
-        // Rear wheels
         ctx.fillRect(-w * 0.52, h * 0.20, wheelW, wheelH);
         ctx.fillRect(w * 0.52 - wheelW, h * 0.20, wheelW, wheelH);
 
-        // Car Main Chasis Body (Curves & aerodynamic shape)
         ctx.fillStyle = mainColor;
         ctx.shadowBlur = 10;
         ctx.shadowColor = mainColor;
 
         ctx.beginPath();
-        ctx.moveTo(0, -h * 0.5); // Nose tip
+        ctx.moveTo(0, -h * 0.5);
         ctx.bezierCurveTo(w * 0.45, -h * 0.48, w * 0.5, -h * 0.2, w * 0.48, 0);
-        ctx.bezierCurveTo(w * 0.52, h * 0.25, w * 0.45, h * 0.48, 0, h * 0.5); // Rear
+        ctx.bezierCurveTo(w * 0.52, h * 0.25, w * 0.45, h * 0.48, 0, h * 0.5);
         ctx.bezierCurveTo(-w * 0.45, h * 0.48, -w * 0.52, h * 0.25, -w * 0.48, 0);
         ctx.bezierCurveTo(-w * 0.5, -h * 0.2, -w * 0.45, -h * 0.48, 0, -h * 0.5);
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Cabin Glass / Windshield (Tinted)
         ctx.fillStyle = '#0a0d14';
         ctx.beginPath();
         ctx.moveTo(0, -h * 0.22);
@@ -1185,11 +1277,9 @@ const Engine = {
         ctx.bezierCurveTo(-w * 0.35, h * 0.1, -w * 0.32, -h * 0.20, 0, -h * 0.22);
         ctx.fill();
 
-        // Roof Accent Lines
         ctx.fillStyle = accentColor;
         ctx.fillRect(-w * 0.08, -h * 0.42, w * 0.16, h * 0.84);
 
-        // Front Headlights Glow
         ctx.fillStyle = isEnemy ? '#ff0055' : '#ffffff';
         ctx.shadowBlur = 12;
         ctx.shadowColor = isEnemy ? '#ff0055' : '#ffffff';
@@ -1198,7 +1288,6 @@ const Engine = {
         ctx.ellipse(w * 0.3, -h * 0.44, w * 0.1, h * 0.04, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Rear Taillights Glow
         ctx.fillStyle = '#ff0033';
         ctx.shadowColor = '#ff0033';
         ctx.beginPath();
@@ -1207,7 +1296,6 @@ const Engine = {
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Aerodynamic Rear Racing Spoiler
         if (hasSpoiler) {
             ctx.fillStyle = '#111116';
             ctx.fillRect(-w * 0.45, h * 0.40, w * 0.9, h * 0.07);
@@ -1226,4 +1314,3 @@ window.onload = () => {
 </script>
 </body>
 </html>
-```
