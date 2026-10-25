@@ -1,0 +1,1098 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سباق وتفادي السيارات - Traffic Racer Neon</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            touch-action: manipulation;
+        }
+
+        body {
+            background-color: #0b0c10;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            direction: rtl;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            max-width: 480px;
+            max-height: 900px;
+            background: #1f2833;
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: #121212;
+        }
+
+        /* UI Overlay */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(11, 12, 16, 0.88);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            padding: 20px;
+            text-align: center;
+            transition: opacity 0.3s ease;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            color: #66fcf1;
+            text-shadow: 0 0 12px rgba(102, 252, 241, 0.6);
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+            color: #45f3ff;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 1rem;
+            color: #c5c6c7;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #45a29e, #66fcf1);
+            color: #0b0c10;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 252, 241, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin: 8px 0;
+            width: 80%;
+            max-width: 250px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(102, 252, 241, 0.6);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ff007f, #ff5e00);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+        }
+
+        /* HUD Header */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 5;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .hud-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #66fcf1;
+            text-shadow: 0 0 5px rgba(102, 252, 241, 0.5);
+        }
+
+        .hud-label {
+            font-size: 0.75rem;
+            color: #c5c6c7;
+        }
+
+        /* Fuel Bar Container */
+        .fuel-container {
+            width: 100px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #fuel-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff0055, #ffcc00, #00ff66);
+            transition: width 0.1s linear;
+        }
+
+        /* Controls Area for Mobile */
+        #touch-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .touch-btn {
+            width: 80px;
+            height: 80px;
+            background: rgba(102, 252, 241, 0.15);
+            border: 2px solid rgba(102, 252, 241, 0.4);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: #66fcf1;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            user-select: none;
+        }
+
+        .touch-btn:active {
+            background: rgba(102, 252, 241, 0.4);
+        }
+
+        /* Shop Grid */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+            max-width: 340px;
+            margin: 15px 0;
+            max-height: 250px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .car-card {
+            background: #1f2833;
+            border: 2px solid #45a29e;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .car-card.selected {
+            border-color: #66fcf1;
+            box-shadow: 0 0 15px rgba(102, 252, 241, 0.6);
+            background: #2b3a4a;
+        }
+
+        .car-card canvas {
+            width: 50px;
+            height: 80px;
+            background: transparent;
+            margin-bottom: 8px;
+        }
+
+        /* Utility buttons top right */
+        .top-btns {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 6;
+            pointer-events: auto;
+        }
+
+        .icon-btn {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #45a29e;
+            color: #66fcf1;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        /* Nitro Notification */
+        #nitro-banner {
+            position: absolute;
+            top: 70px;
+            width: 100%;
+            text-align: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #ff007f;
+            text-shadow: 0 0 15px #ff007f, 0 0 30px #ff007f;
+            letter-spacing: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Top Utility Buttons -->
+    <div class="top-btns">
+        <button id="btn-pause" class="icon-btn">⏸️</button>
+        <button id="btn-audio" class="icon-btn">🔊</button>
+    </div>
+
+    <!-- HUD Overlay -->
+    <div id="hud">
+        <div class="hud-item">
+            <span class="hud-label">النقاط</span>
+            <span id="hud-score" class="hud-value">0</span>
+        </div>
+        <div class="hud-item" style="align-items: center;">
+            <span class="hud-label">الوقود</span>
+            <div class="fuel-container">
+                <div id="fuel-bar"></div>
+            </div>
+        </div>
+        <div class="hud-item" style="align-items: flex-end;">
+            <span class="hud-label">العملات</span>
+            <span id="hud-coins" class="hud-value">🪙 0</span>
+        </div>
+    </div>
+
+    <div id="nitro-banner">🔥 سرعة النيترو! 🔥</div>
+
+    <!-- Mobile Touch Control Buttons -->
+    <div id="touch-controls">
+        <div id="btn-left" class="touch-btn">◀</div>
+        <div id="btn-right" class="touch-btn">▶</div>
+    </div>
+
+    <!-- Start / Main Menu Screen -->
+    <div id="screen-start" class="overlay">
+        <h1>سباق النيون 🏎️</h1>
+        <p>تادَ السيارات الأسرع، اجمع الوقود والعملات وشغّل النيترو!</p>
+        <p style="font-size: 0.85rem; color: #45a29e;">التحكم: أسهم الكيبورد ⬅️ ➡️ أو أزرار اللمس بالأسفل</p>
+
+        <button id="btn-start" class="btn">ابدأ اللعب 🚀</button>
+        <button id="btn-shop-open" class="btn btn-secondary">الكراج والسيارات 🚘</button>
+
+        <div style="margin-top: 15px;">
+            <span class="hud-label">أعلى نتيجة:</span>
+            <span id="menu-highscore" class="hud-value" style="color: #ff007f;">0</span>
+        </div>
+    </div>
+
+    <!-- Shop Screen -->
+    <div id="screen-shop" class="overlay hidden">
+        <h2>اختر سيارتك 🏎️</h2>
+        <p>العملات لديك: <span id="shop-coins-display" style="color:#66fcf1; font-weight:bold;">0</span> 🪙</p>
+
+        <div id="car-shop-list" class="shop-grid"></div>
+
+        <button id="btn-shop-close" class="btn">تم / العودة ↩️</button>
+    </div>
+
+    <!-- Pause Screen -->
+    <div id="screen-pause" class="overlay hidden">
+        <h1>اللعبة متوقفة ⏸️</h1>
+        <button id="btn-resume" class="btn">استئناف اللعب ▶️</button>
+        <button id="btn-restart-pause" class="btn btn-secondary">إعادة البدء 🔄</button>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="screen-gameover" class="overlay hidden">
+        <h1 style="color: #ff0055;">انتهى السباق! 💥</h1>
+        <p id="gameover-reason" style="color: #ffcc00; font-weight: bold;">تحطمت السيارة!</p>
+
+        <div style="margin: 10px 0;">
+            <p>النتيجة النهائية: <span id="go-score" class="hud-value">0</span></p>
+            <p>العملات المجمعة: <span id="go-coins" class="hud-value" style="color:#ffcc00;">0</span></p>
+            <p>المسافة: <span id="go-distance" class="hud-value" style="color:#45f3ff;">0m</span></p>
+        </div>
+
+        <button id="btn-restart" class="btn">محاولة جديدة 🔄</button>
+        <button id="btn-menu" class="btn btn-secondary">القائمة الرئيسية 🏠</button>
+    </div>
+</div>
+
+<script>
+/**
+ * 2D Traffic Racer Neon Game - Single File Executable Engine
+ */
+
+// Global Audio Synthesizer via Web Audio API (No external sound files required)
+class SoundFx {
+    constructor() {
+        this.ctx = null;
+        this.enabled = true;
+    }
+
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playCoin() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.1);
+    }
+
+    playFuel() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(800, this.ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.4, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.2);
+    }
+
+    playNitro() {
+        if (!this.enabled || !this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(800, this.ctx.currentTime + 0.4);
+        gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.4);
+    }
+
+    playCrash() {
+        if (!this.enabled || !this.ctx) return;
+        // White noise crash
+        const bufferSize = this.ctx.sampleRate * 0.5;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = Math.random() * 2 - 1;
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+        filter.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.5);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.8, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.5);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start();
+        noise.stop(this.ctx.currentTime + 0.5);
+    }
+}
+
+const sfx = new SoundFx();
+
+// Car Skins Configuration
+const CAR_SKINS = [
+    { id: 'neon_blue', name: 'السرعة الزرقاء', color: '#66fcf1', accent: '#45a29e', price: 0, unlocked: true },
+    { id: 'neon_pink', name: 'المتوهجة الوردية', color: '#ff007f', accent: '#ff5e00', price: 50, unlocked: false },
+    { id: 'cyber_yellow', name: 'الصاعقة الصفراء', color: '#ffe600', accent: '#ff9900', price: 100, unlocked: false },
+    { id: 'emerald_green', name: 'الأفعى الخضراء', color: '#00ff66', accent: '#009933', price: 200, unlocked: false }
+];
+
+// Main Game Controller Object
+const Game = {
+    canvas: null,
+    ctx: null,
+    width: 0,
+    height: 0,
+    lanes: 4,
+    laneWidth: 0,
+    roadLeft: 0,
+    roadWidth: 0,
+
+    // State Variables
+    isRunning: false,
+    isPaused: false,
+    score: 0,
+    coins: 0,
+    totalCoins: 0,
+    highScore: 0,
+    distance: 0,
+    fuel: 100,
+    speed: 5,
+    baseSpeed: 5,
+    nitroTimer: 0,
+    shakeTimer: 0,
+
+    // Entities
+    player: null,
+    traffic: [],
+    items: [],
+    particles: [],
+
+    // Controls
+    keyState: { left: false, right: false },
+    touchDir: 0,
+
+    // Skins & Selection
+    selectedSkin: 0,
+
+    init() {
+        this.canvas = document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+
+        this.loadStorage();
+        this.resizeCanvas();
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        this.setupControls();
+        this.setupShopUI();
+        this.updateHUD();
+
+        // Animation Loop Init
+        let lastTime = performance.now();
+        const loop = (now) => {
+            const dt = (now - lastTime) / 1000;
+            lastTime = now;
+            this.update(dt);
+            this.render();
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    },
+
+    loadStorage() {
+        this.highScore = parseInt(localStorage.getItem('tr_highscore') || '0');
+        this.totalCoins = parseInt(localStorage.getItem('tr_coins') || '0');
+        const unlockedSkins = JSON.parse(localStorage.getItem('tr_skins') || '[0]');
+        CAR_SKINS.forEach((skin, idx) => {
+            if (unlockedSkins.includes(idx)) skin.unlocked = true;
+        });
+        this.selectedSkin = parseInt(localStorage.getItem('tr_selected_skin') || '0');
+        document.getElementById('menu-highscore').innerText = this.highScore;
+    },
+
+    saveStorage() {
+        localStorage.setItem('tr_highscore', this.highScore);
+        localStorage.setItem('tr_coins', this.totalCoins);
+        const unlockedSkins = CAR_SKINS.map((s, idx) => s.unlocked ? idx : -1).filter(idx => idx !== -1);
+        localStorage.setItem('tr_skins', JSON.stringify(unlockedSkins));
+        localStorage.setItem('tr_selected_skin', this.selectedSkin);
+    },
+
+    resizeCanvas() {
+        const container = document.getElementById('game-container');
+        this.width = container.clientWidth;
+        this.height = container.clientHeight;
+        this.canvas.width = this.width;
+        this.canvas.height = this.height;
+
+        this.roadWidth = this.width * 0.85;
+        this.roadLeft = (this.width - this.roadWidth) / 2;
+        this.laneWidth = this.roadWidth / this.lanes;
+
+        if (this.player) {
+            this.player.y = this.height - 130;
+            this.player.width = this.laneWidth * 0.65;
+            this.player.height = this.player.width * 1.8;
+        }
+    },
+
+    startNewGame() {
+        sfx.init();
+        this.score = 0;
+        this.coins = 0;
+        this.distance = 0;
+        this.fuel = 100;
+        this.speed = this.baseSpeed;
+        this.nitroTimer = 0;
+        this.traffic = [];
+        this.items = [];
+        this.particles = [];
+
+        const playerW = this.laneWidth * 0.65;
+        const playerH = playerW * 1.8;
+        this.player = {
+            lane: 1.5, // Continuous lane x offset
+            x: this.roadLeft + (1.5 + 0.5) * this.laneWidth - playerW / 2,
+            y: this.height - 130,
+            width: playerW,
+            height: playerH,
+            targetX: this.roadLeft + (1.5 + 0.5) * this.laneWidth - playerW / 2
+        };
+
+        this.isRunning = true;
+        this.isPaused = false;
+
+        document.getElementById('screen-start').classList.add('hidden');
+        document.getElementById('screen-gameover').classList.add('hidden');
+        document.getElementById('screen-pause').classList.add('hidden');
+    },
+
+    setupControls() {
+        // Keyboard inputs
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.keyState.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.keyState.right = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') this.keyState.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') this.keyState.right = false;
+        });
+
+        // Touch Control Elements
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+
+        const addTouchEvents = (elem, dir) => {
+            elem.addEventListener('touchstart', (e) => { e.preventDefault(); this.touchDir = dir; });
+            elem.addEventListener('touchend', (e) => { e.preventDefault(); if (this.touchDir === dir) this.touchDir = 0; });
+            elem.addEventListener('mousedown', () => { this.touchDir = dir; });
+            elem.addEventListener('mouseup', () => { if (this.touchDir === dir) this.touchDir = 0; });
+        };
+        addTouchEvents(btnLeft, -1);
+        addTouchEvents(btnRight, 1);
+
+        // UI Buttons
+        document.getElementById('btn-start').onclick = () => this.startNewGame();
+        document.getElementById('btn-restart').onclick = () => this.startNewGame();
+        document.getElementById('btn-restart-pause').onclick = () => this.startNewGame();
+
+        document.getElementById('btn-pause').onclick = () => {
+            if (!this.isRunning) return;
+            this.isPaused = !this.isPaused;
+            document.getElementById('screen-pause').classList.toggle('hidden', !this.isPaused);
+        };
+
+        document.getElementById('btn-resume').onclick = () => {
+            this.isPaused = false;
+            document.getElementById('screen-pause').classList.add('hidden');
+        };
+
+        document.getElementById('btn-menu').onclick = () => {
+            this.isRunning = false;
+            document.getElementById('screen-gameover').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-audio').onclick = () => {
+            sfx.enabled = !sfx.enabled;
+            document.getElementById('btn-audio').innerText = sfx.enabled ? '🔊' : '🔇';
+        };
+
+        document.getElementById('btn-shop-open').onclick = () => {
+            this.updateShopUI();
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-shop').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-shop-close').onclick = () => {
+            document.getElementById('screen-shop').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
+            document.getElementById('menu-highscore').innerText = this.highScore;
+        };
+    },
+
+    setupShopUI() {
+        const shopContainer = document.getElementById('car-shop-list');
+        shopContainer.innerHTML = '';
+
+        CAR_SKINS.forEach((car, index) => {
+            const card = document.createElement('div');
+            card.className = `car-card ${this.selectedSkin === index ? 'selected' : ''}`;
+            
+            const miniCanvas = document.createElement('canvas');
+            miniCanvas.width = 50;
+            miniCanvas.height = 80;
+            this.drawCarOnContext(miniCanvas.getContext('2d'), 25, 40, 30, 60, car.color, car.accent);
+
+            card.appendChild(miniCanvas);
+            card.innerHTML += `<div style="font-weight:bold; font-size:0.85rem; margin-top:4px;">${car.name}</div>`;
+
+            if (!car.unlocked) {
+                card.innerHTML += `<button class="btn" style="padding:4px 8px; font-size:0.75rem; margin-top:5px;">شراء 🪙 ${car.price}</button>`;
+            } else if (this.selectedSkin === index) {
+                card.innerHTML += `<div style="color:#66fcf1; font-size:0.75rem; margin-top:5px;">محدد ✅</div>`;
+            } else {
+                card.innerHTML += `<div style="color:#aaa; font-size:0.75rem; margin-top:5px;">اختيار</div>`;
+            }
+
+            card.onclick = () => {
+                if (!car.unlocked) {
+                    if (this.totalCoins >= car.price) {
+                        this.totalCoins -= car.price;
+                        car.unlocked = true;
+                        this.selectedSkin = index;
+                        this.saveStorage();
+                        this.setupShopUI();
+                    } else {
+                        alert('لا تملك عملات كافية!');
+                    }
+                } else {
+                    this.selectedSkin = index;
+                    this.saveStorage();
+                    this.setupShopUI();
+                }
+            };
+
+            shopContainer.appendChild(card);
+        });
+
+        document.getElementById('shop-coins-display').innerText = this.totalCoins;
+    },
+
+    updateShopUI() {
+        document.getElementById('shop-coins-display').innerText = this.totalCoins;
+        this.setupShopUI();
+    },
+
+    spawnTraffic() {
+        if (Math.random() < 0.025) {
+            const lane = Math.floor(Math.random() * this.lanes);
+            const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
+            const sizeW = this.laneWidth * 0.6;
+            const sizeH = sizeW * 1.8;
+
+            // Prevent stacking on recent items/traffic
+            const overlaps = this.traffic.some(t => Math.abs(t.x - (laneX - sizeW / 2)) < 10 && t.y < 150);
+            if (!overlaps) {
+                const colors = ['#ff3366', '#33ccff', '#ffff33', '#cc33ff', '#ff9900'];
+                this.traffic.push({
+                    x: laneX - sizeW / 2,
+                    y: -sizeH - 20,
+                    width: sizeW,
+                    height: sizeH,
+                    speed: (Math.random() * 2 + 2),
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+        }
+    },
+
+    spawnItems() {
+        if (Math.random() < 0.015) {
+            const lane = Math.floor(Math.random() * this.lanes);
+            const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
+            const rand = Math.random();
+            let type = 'coin';
+            if (rand < 0.25) type = 'fuel';
+            else if (rand < 0.35) type = 'nitro';
+
+            this.items.push({
+                x: laneX,
+                y: -30,
+                radius: 14,
+                type: type
+            });
+        }
+    },
+
+    update(dt) {
+        if (!this.isRunning || this.isPaused) return;
+
+        // Nitro Logic
+        const isNitroActive = this.nitroTimer > 0;
+        if (isNitroActive) {
+            this.nitroTimer -= dt;
+            this.speed = this.baseSpeed * 2.2;
+            document.getElementById('nitro-banner').style.opacity = '1';
+            // Spawn nitro particles
+            this.particles.push({
+                x: this.player.x + this.player.width / 2 + (Math.random() * 10 - 5),
+                y: this.player.y + this.player.height,
+                vx: Math.random() * 2 - 1,
+                vy: Math.random() * 5 + 5,
+                life: 0.3,
+                color: '#ff007f'
+            });
+        } else {
+            this.speed = this.baseSpeed + Math.floor(this.score / 500) * 0.5;
+            document.getElementById('nitro-banner').style.opacity = '0';
+        }
+
+        // Fuel depletion
+        this.fuel -= dt * (isNitroActive ? 1.5 : 3.0);
+        if (this.fuel <= 0) {
+            this.fuel = 0;
+            this.gameOver('انتهى الوقود!');
+            return;
+        }
+
+        // Steer Player
+        let moveDir = 0;
+        if (this.keyState.left || this.touchDir === -1) moveDir = -1;
+        if (this.keyState.right || this.touchDir === 1) moveDir = 1;
+
+        const moveSpeed = this.width * 0.8 * dt;
+        this.player.x += moveDir * moveSpeed;
+
+        // Keep inside road bounds
+        if (this.player.x < this.roadLeft + 5) this.player.x = this.roadLeft + 5;
+        if (this.player.x + this.player.width > this.roadLeft + this.roadWidth - 5) {
+            this.player.x = this.roadLeft + this.roadWidth - this.player.width - 5;
+        }
+
+        // Distance & Score
+        this.distance += this.speed * dt * 5;
+        this.score += Math.floor(this.speed * dt * 10);
+
+        // Spawn Traffic and Collectibles
+        this.spawnTraffic();
+        this.spawnItems();
+
+        // Move Traffic & Collision Detection
+        for (let i = this.traffic.length - 1; i >= 0; i--) {
+            const t = this.traffic[i];
+            t.y += (this.speed - t.speed + 3) * dt * 60 * 0.1;
+
+            // AABB Collision Test
+            if (!isNitroActive &&
+                this.player.x < t.x + t.width &&
+                this.player.x + this.player.width > t.x &&
+                this.player.y < t.y + t.height &&
+                this.player.y + this.player.height > t.y) {
+                
+                this.triggerExplosion(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
+                sfx.playCrash();
+                this.shakeTimer = 0.4;
+                this.gameOver('تصادمت مع سيارة أخرى!');
+                return;
+            } else if (isNitroActive &&
+                this.player.x < t.x + t.width &&
+                this.player.x + this.player.width > t.x &&
+                this.player.y < t.y + t.height &&
+                this.player.y + this.player.height > t.y) {
+                // Destroy obstacle in Nitro mode
+                this.triggerExplosion(t.x + t.width / 2, t.y + t.height / 2);
+                this.traffic.splice(i, 1);
+                this.score += 50;
+                continue;
+            }
+
+            if (t.y > this.height + 50) this.traffic.splice(i, 1);
+        }
+
+        // Move Collectibles
+        for (let i = this.items.length - 1; i >= 0; i--) {
+            const item = this.items[i];
+            item.y += this.speed * dt * 60 * 0.1;
+
+            // Circle-Box Collision Test with Player
+            const closestX = Math.max(this.player.x, Math.min(item.x, this.player.x + this.player.width));
+            const closestY = Math.max(this.player.y, Math.min(item.y, this.player.y + this.player.height));
+            const distX = item.x - closestX;
+            const distY = item.y - closestY;
+
+            if ((distX * distX + distY * distY) < (item.radius * item.radius)) {
+                if (item.type === 'coin') {
+                    this.coins += 1;
+                    this.totalCoins += 1;
+                    this.score += 20;
+                    sfx.playCoin();
+                } else if (item.type === 'fuel') {
+                    this.fuel = Math.min(100, this.fuel + 30);
+                    sfx.playFuel();
+                } else if (item.type === 'nitro') {
+                    this.nitroTimer = 4.0;
+                    sfx.playNitro();
+                }
+                this.items.splice(i, 1);
+                continue;
+            }
+
+            if (item.y > this.height + 30) this.items.splice(i, 1);
+        }
+
+        // Particle updates
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= dt;
+            if (p.life <= 0) this.particles.splice(i, 1);
+        }
+
+        if (this.shakeTimer > 0) this.shakeTimer -= dt;
+
+        this.updateHUD();
+    },
+
+    triggerExplosion(x, y) {
+        for (let i = 0; i < 30; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 12,
+                vy: (Math.random() - 0.5) * 12,
+                life: 0.5 + Math.random() * 0.3,
+                color: Math.random() < 0.5 ? '#ff0055' : '#ffcc00'
+            });
+        }
+    },
+
+    gameOver(reason) {
+        this.isRunning = false;
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+        }
+        this.saveStorage();
+
+        document.getElementById('gameover-reason').innerText = reason;
+        document.getElementById('go-score').innerText = this.score;
+        document.getElementById('go-coins').innerText = this.coins;
+        document.getElementById('go-distance').innerText = `${Math.floor(this.distance)} م`;
+        document.getElementById('screen-gameover').classList.remove('hidden');
+    },
+
+    updateHUD() {
+        document.getElementById('hud-score').innerText = this.score;
+        document.getElementById('hud-coins').innerText = `🪙 ${this.coins}`;
+        document.getElementById('fuel-bar').style.width = `${this.fuel}%`;
+    },
+
+    render() {
+        this.ctx.save();
+
+        // Screen Shake Effect
+        if (this.shakeTimer > 0) {
+            const dx = (Math.random() - 0.5) * 15;
+            const dy = (Math.random() - 0.5) * 15;
+            this.ctx.translate(dx, dy);
+        }
+
+        // Clear Canvas
+        this.ctx.fillStyle = '#0b0c10';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // Draw Road Background
+        this.ctx.fillStyle = '#181a20';
+        this.ctx.fillRect(this.roadLeft, 0, this.roadWidth, this.height);
+
+        // Road Side Neon Borders
+        this.ctx.strokeStyle = '#66fcf1';
+        this.ctx.lineWidth = 4;
+        this.ctx.shadowBlur = 10;
+        this.ctx.shadowColor = '#66fcf1';
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(this.roadLeft, 0);
+        this.ctx.lineTo(this.roadLeft, this.height);
+        this.ctx.moveTo(this.roadLeft + this.roadWidth, 0);
+        this.ctx.lineTo(this.roadLeft + this.roadWidth, this.height);
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+
+        // Animated Lane Markings
+        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        this.ctx.lineWidth = 3;
+        this.ctx.setLineDash([20, 20]);
+        this.ctx.lineDashOffset = -this.distance * 2;
+
+        for (let i = 1; i < this.lanes; i++) {
+            const laneX = this.roadLeft + i * this.laneWidth;
+            this.ctx.beginPath();
+            this.ctx.moveTo(laneX, 0);
+            this.ctx.lineTo(laneX, this.height);
+            this.ctx.stroke();
+        }
+        this.ctx.setLineDash([]); // Reset line dash
+
+        // Draw Items (Coins, Fuel, Nitro)
+        this.items.forEach(item => {
+            this.ctx.save();
+            this.ctx.translate(item.x, item.y);
+
+            if (item.type === 'coin') {
+                this.ctx.fillStyle = '#ffcc00';
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = '#ffcc00';
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, item.radius, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.fillStyle = '#000';
+                this.ctx.font = 'bold 12px sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('★', 0, 0);
+            } else if (item.type === 'fuel') {
+                this.ctx.fillStyle = '#00ff66';
+                this.ctx.shadowBlur = 10;
+                this.ctx.shadowColor = '#00ff66';
+                this.ctx.fillRect(-item.radius, -item.radius, item.radius * 2, item.radius * 2);
+                this.ctx.fillStyle = '#000';
+                this.ctx.font = 'bold 10px sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('وقود', 0, 0);
+            } else if (item.type === 'nitro') {
+                this.ctx.fillStyle = '#ff007f';
+                this.ctx.shadowBlur = 12;
+                this.ctx.shadowColor = '#ff007f';
+                this.ctx.beginPath();
+                this.ctx.arc(0, 0, item.radius + 2, 0, Math.PI * 2);
+                this.ctx.fill();
+                this.ctx.fillStyle = '#fff';
+                this.ctx.font = 'bold 11px sans-serif';
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText('🔥', 0, 0);
+            }
+            this.ctx.restore();
+        });
+
+        // Draw Traffic Cars
+        this.traffic.forEach(t => {
+            this.drawCarOnContext(this.ctx, t.x + t.width / 2, t.y + t.height / 2, t.width, t.height, t.color, '#111', true);
+        });
+
+        // Draw Player Car
+        if (this.player) {
+            const skin = CAR_SKINS[this.selectedSkin];
+            this.drawCarOnContext(
+                this.ctx,
+                this.player.x + this.player.width / 2,
+                this.player.y + this.player.height / 2,
+                this.player.width,
+                this.player.height,
+                skin.color,
+                skin.accent,
+                false
+            );
+        }
+
+        // Draw Particles
+        this.particles.forEach(p => {
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = Math.max(0, p.life * 2);
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, Math.random() * 4 + 2, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.globalAlpha = 1.0;
+        });
+
+        this.ctx.restore();
+    },
+
+    // Stylized Car Drawing Helper
+    drawCarOnContext(ctx, cx, cy, width, height, mainColor, accentColor, isEnemy = false) {
+        ctx.save();
+        ctx.translate(cx, cy);
+
+        if (isEnemy) {
+            ctx.rotate(Math.PI); // Rotate opponent cars to face downwards
+        }
+
+        const halfW = width / 2;
+        const halfH = height / 2;
+
+        // Shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fillRect(-halfW + 2, -halfH + 4, width, height);
+
+        // Body base
+        ctx.fillStyle = mainColor;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = mainColor;
+        ctx.beginPath();
+        ctx.roundRect(-halfW, -halfH, width, height, [8]);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Roof / Windshield
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.roundRect(-halfW + 4, -halfH + 12, width - 8, height - 24, [4]);
+        ctx.fill();
+
+        // Hood detail
+        ctx.fillStyle = accentColor;
+        ctx.fillRect(-halfW + 6, -halfH + 4, width - 12, 6);
+
+        // Headlights / Taillights
+        ctx.fillStyle = isEnemy ? '#ff0055' : '#66fcf1';
+        ctx.fillRect(-halfW + 2, -halfH + 2, 6, 3);
+        ctx.fillRect(halfW - 8, -halfH + 2, 6, 3);
+
+        ctx.restore();
+    }
+};
+
+// Start Game Engine on Window Load
+window.onload = () => {
+    Game.init();
+};
+</script>
+</body>
+</html>
+```
