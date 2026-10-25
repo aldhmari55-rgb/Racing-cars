@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>سباق السيارات السريع - High Speed Racer</title>
+    <title>سباق السيارات السريع - 1000 مستوى</title>
     <style>
         * {
             box-sizing: border-box;
@@ -57,7 +57,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            background: rgba(5, 7, 12, 0.92);
+            background: rgba(5, 7, 12, 0.93);
             backdrop-filter: blur(12px);
             z-index: 20;
             padding: 24px;
@@ -71,7 +71,7 @@
         }
 
         h1 {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 900;
             background: linear-gradient(135deg, #00f0ff, #7000ff, #ff007f);
             -webkit-background-clip: text;
@@ -82,7 +82,7 @@
         }
 
         h2 {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             color: #00f0ff;
             margin-bottom: 12px;
         }
@@ -257,10 +257,6 @@
             height: 76px;
         }
 
-        .btn-nitro-touch:active {
-            background: rgba(255, 0, 127, 0.4);
-        }
-
         .top-bar {
             position: absolute;
             top: 15px;
@@ -286,16 +282,21 @@
             backdrop-filter: blur(4px);
         }
 
-        .garage-grid {
+        /* Garage & Level Grid */
+        .garage-grid, .levels-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
             width: 100%;
-            max-width: 360px;
+            max-width: 380px;
             margin: 15px 0;
             max-height: 320px;
             overflow-y: auto;
             padding: 6px;
+        }
+
+        .garage-grid {
+            grid-template-columns: repeat(2, 1fr);
         }
 
         .car-card {
@@ -320,6 +321,35 @@
             width: 60px;
             height: 100px;
             background: transparent;
+        }
+
+        .level-btn {
+            background: rgba(20, 25, 35, 0.8);
+            border: 2px solid rgba(0, 240, 255, 0.3);
+            border-radius: 14px;
+            padding: 14px 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #00f0ff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .level-btn.locked {
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #555;
+            cursor: not-allowed;
+            background: rgba(10, 12, 16, 0.5);
+        }
+
+        .level-btn.active {
+            border-color: #00ff66;
+            color: #00ff66;
+            box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
         }
 
         #nitro-banner {
@@ -351,8 +381,8 @@
 
     <div id="hud">
         <div class="hud-card">
-            <span class="hud-lbl">النقاط</span>
-            <span id="hud-score" class="hud-val">0</span>
+            <span class="hud-lbl">المستوى</span>
+            <span id="hud-level" class="hud-val">1 / 1000</span>
         </div>
         <div class="hud-card" style="align-items: center;">
             <span class="hud-lbl">الوقود</span>
@@ -385,16 +415,27 @@
 
     <!-- Main Menu Screen -->
     <div id="screen-start" class="overlay">
-        <h1>سباق النيون الأسرع</h1>
-        <p>مرحلة واحدة ممتعة وسهلة! اصل لخطي النهاية (1000م) وافز بالميدالية الذهبية 🏆</p>
+        <h1>سباق الـ 1000 مستوى 🏎️</h1>
+        <p>قد السيارة عبر 1000 مستوى مشوق وممتع! اجمع العملات وافتح السيارات والمستويات!</p>
         
-        <button id="btn-start" class="btn">ابدأ السباق السهل 🚀</button>
+        <button id="btn-start" class="btn">ابدأ المستوى الحالي 🚀</button>
+        <button id="btn-levels-open" class="btn btn-outline">اختيار المستوى 🗺️</button>
         <button id="btn-garage-open" class="btn btn-accent">الكراج والسيارات 🏎️</button>
 
-        <div style="margin-top: 20px;">
-            <span class="hud-lbl">أعلى نتيجة: </span>
-            <span id="menu-highscore" class="hud-val" style="color:#ff007f;">0</span>
+        <div style="margin-top: 15px;">
+            <span class="hud-lbl">المستوى المفتوح: </span>
+            <span id="menu-maxlevel" class="hud-val" style="color:#00ff66;">المستوى 1</span>
         </div>
+    </div>
+
+    <!-- Levels Selector Screen -->
+    <div id="screen-levels" class="overlay hidden">
+        <h2>اختر المستوى (1 - 1000) 🗺️</h2>
+        <p>انقر على المستوى لبدء السباق فوراً!</p>
+
+        <div id="levels-list" class="levels-grid"></div>
+
+        <button id="btn-levels-close" class="btn">رجوع ↩️</button>
     </div>
 
     <!-- Garage Screen -->
@@ -417,14 +458,14 @@
     <!-- Victory Screen -->
     <div id="screen-win" class="overlay hidden">
         <h1 style="color: #00ff66;">فوز ساحق! 🏆🎉</h1>
-        <p style="color: #00f0ff; font-weight: bold; font-size: 1.15rem;">لقد وصلت لخط النهاية بنجاح بنسبة 100%!</p>
+        <p id="win-desc" style="color: #00f0ff; font-weight: bold; font-size: 1.15rem;">لقد أتممت المستوى بنجاح!</p>
 
         <div style="margin: 12px 0; background: rgba(0,255,102,0.1); padding: 15px 30px; border-radius: 16px; border: 1px solid rgba(0,255,102,0.3);">
             <p style="margin-bottom:6px;">النقاط الإجمالية: <span id="win-score" class="hud-val" style="color:#00ff66;">0</span></p>
             <p style="margin-bottom:6px;">العملات المجمعة: <span id="win-coins" class="hud-val" style="color:#ffcc00;">0</span></p>
         </div>
 
-        <button id="btn-restart-win" class="btn btn-win">العب مرة أخرى 🔄</button>
+        <button id="btn-next-level" class="btn btn-win">المستوى التالي ▶️</button>
         <button id="btn-menu-win" class="btn btn-outline">القائمة الرئيسية 🏠</button>
     </div>
 
@@ -660,9 +701,13 @@ const Engine = {
     score: 0,
     coins: 0,
     totalCoins: 0,
-    highScore: 0,
+    
+    // Level 1 to 1000 Mechanics
+    currentLevel: 1,
+    maxUnlockedLevel: 1,
+    targetDistance: 600,
+
     distance: 0,
-    targetDistance: 1000, // Easy Target Distance (1000 meters to win!)
     fuel: 100,
     speed: 10,
     baseSpeed: 10,
@@ -705,19 +750,21 @@ const Engine = {
     },
 
     loadSavedData() {
-        this.highScore = parseInt(localStorage.getItem('tru_highscore') || '0');
         this.totalCoins = parseInt(localStorage.getItem('tru_coins') || '0');
+        this.maxUnlockedLevel = parseInt(localStorage.getItem('tru_maxlevel') || '1');
+        this.currentLevel = this.maxUnlockedLevel;
+
         const unlockedSkins = JSON.parse(localStorage.getItem('tru_unlocked') || '[0]');
         CAR_DATABASE.forEach((car, idx) => {
             if (unlockedSkins.includes(idx)) car.unlocked = true;
         });
         this.selectedCarIdx = parseInt(localStorage.getItem('tru_selected') || '0');
-        document.getElementById('menu-highscore').innerText = this.highScore;
+        document.getElementById('menu-maxlevel').innerText = `المستوى ${this.maxUnlockedLevel}`;
     },
 
     saveData() {
-        localStorage.setItem('tru_highscore', this.highScore);
         localStorage.setItem('tru_coins', this.totalCoins);
+        localStorage.setItem('tru_maxlevel', this.maxUnlockedLevel);
         const unlockedSkins = CAR_DATABASE.map((c, i) => c.unlocked ? i : -1).filter(i => i !== -1);
         localStorage.setItem('tru_unlocked', JSON.stringify(unlockedSkins));
         localStorage.setItem('tru_selected', this.selectedCarIdx);
@@ -741,7 +788,11 @@ const Engine = {
         }
     },
 
-    start() {
+    startLevel(levelNum) {
+        this.currentLevel = levelNum || this.currentLevel;
+        // Formula for target distance: increases slightly each level
+        this.targetDistance = 500 + (this.currentLevel * 150);
+
         audio.init();
         audio.startMusic();
 
@@ -749,7 +800,7 @@ const Engine = {
         this.coins = 0;
         this.distance = 0;
         this.fuel = 100;
-        this.speed = this.baseSpeed;
+        this.speed = this.baseSpeed + Math.min(6, (this.currentLevel * 0.05));
         this.nitroTimer = 0;
         this.traffic = [];
         this.items = [];
@@ -778,6 +829,7 @@ const Engine = {
         this.isPaused = false;
 
         document.getElementById('screen-start').classList.add('hidden');
+        document.getElementById('screen-levels').classList.add('hidden');
         document.getElementById('screen-gameover').classList.add('hidden');
         document.getElementById('screen-win').classList.add('hidden');
         document.getElementById('screen-pause').classList.add('hidden');
@@ -807,10 +859,17 @@ const Engine = {
         setupBtn('btn-right', () => this.touchDir = 1, () => { if (this.touchDir === 1) this.touchDir = 0; });
         setupBtn('btn-nitro-touch', () => this.touchNitro = true, () => this.touchNitro = false);
 
-        document.getElementById('btn-start').onclick = () => this.start();
-        document.getElementById('btn-restart').onclick = () => this.start();
-        document.getElementById('btn-restart-win').onclick = () => this.start();
-        document.getElementById('btn-restart-pause').onclick = () => this.start();
+        document.getElementById('btn-start').onclick = () => this.startLevel(this.currentLevel);
+        document.getElementById('btn-restart').onclick = () => this.startLevel(this.currentLevel);
+        document.getElementById('btn-restart-pause').onclick = () => this.startLevel(this.currentLevel);
+
+        document.getElementById('btn-next-level').onclick = () => {
+            if (this.currentLevel < 1000) {
+                this.startLevel(this.currentLevel + 1);
+            } else {
+                this.goToMenu();
+            }
+        };
 
         document.getElementById('btn-pause').onclick = () => {
             if (!this.isRunning) return;
@@ -845,7 +904,17 @@ const Engine = {
         document.getElementById('btn-garage-close').onclick = () => {
             document.getElementById('screen-garage').classList.add('hidden');
             document.getElementById('screen-start').classList.remove('hidden');
-            document.getElementById('menu-highscore').innerText = this.highScore;
+        };
+
+        document.getElementById('btn-levels-open').onclick = () => {
+            this.renderLevelsGrid();
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-levels').classList.remove('hidden');
+        };
+
+        document.getElementById('btn-levels-close').onclick = () => {
+            document.getElementById('screen-levels').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
         };
     },
 
@@ -855,6 +924,30 @@ const Engine = {
         document.getElementById('screen-gameover').classList.add('hidden');
         document.getElementById('screen-win').classList.add('hidden');
         document.getElementById('screen-start').classList.remove('hidden');
+        document.getElementById('menu-maxlevel').innerText = `المستوى ${this.maxUnlockedLevel}`;
+    },
+
+    renderLevelsGrid() {
+        const container = document.getElementById('levels-list');
+        container.innerHTML = '';
+
+        // Display 30 levels per scroll view for quick selection up to 1000
+        const displayLimit = Math.min(1000, Math.max(30, this.maxUnlockedLevel + 10));
+
+        for (let i = 1; i <= displayLimit; i++) {
+            const isUnlocked = i <= this.maxUnlockedLevel;
+            const btn = document.createElement('div');
+            btn.className = `level-btn ${isUnlocked ? (i === this.currentLevel ? 'active' : '') : 'locked'}`;
+            btn.innerHTML = `<span>${i}</span><span>${isUnlocked ? '🔓' : '🔒'}</span>`;
+
+            if (isUnlocked) {
+                btn.onclick = () => {
+                    this.startLevel(i);
+                };
+            }
+
+            container.appendChild(btn);
+        }
     },
 
     renderGarage() {
@@ -906,8 +999,7 @@ const Engine = {
     },
 
     spawnTraffic() {
-        // Reduced frequency for easy gameplay
-        if (Math.random() < 0.02) {
+        if (Math.random() < 0.025) {
             const lane = Math.floor(Math.random() * this.lanes);
             const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
             const w = this.laneWidth * 0.55;
@@ -926,7 +1018,7 @@ const Engine = {
                     y: -h - 40,
                     width: w,
                     height: h,
-                    speed: Math.random() * 2 + 2, // Very Slow Enemy Cars
+                    speed: Math.random() * 2 + 2,
                     mainColor: skin.main,
                     accentColor: skin.accent,
                     spoiler: Math.random() > 0.4
@@ -936,8 +1028,7 @@ const Engine = {
     },
 
     spawnItems() {
-        // Increased frequency for coins, fuel, and nitro!
-        if (Math.random() < 0.07) {
+        if (Math.random() < 0.075) {
             const lane = Math.floor(Math.random() * this.lanes);
             const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
             const rand = Math.random();
@@ -961,7 +1052,7 @@ const Engine = {
         const isNitroActive = this.nitroTimer > 0 || manualNitro;
 
         if (manualNitro) {
-            this.fuel -= dt * 2.0; // Minimal fuel cost
+            this.fuel -= dt * 2.0;
         }
 
         if (isNitroActive) {
@@ -978,11 +1069,10 @@ const Engine = {
                 color: Math.random() > 0.5 ? '#ff007f' : '#00f0ff'
             });
         } else {
-            this.speed = this.baseSpeed;
+            this.speed = this.baseSpeed + Math.min(6, (this.currentLevel * 0.05));
             document.getElementById('nitro-banner').style.opacity = '0';
         }
 
-        // Very slow fuel depletion (Easy Mode)
         this.fuel -= dt * 0.8;
         if (this.fuel <= 0) {
             this.fuel = 0;
@@ -994,7 +1084,7 @@ const Engine = {
         if (this.keyState.left || this.touchDir === -1) dir = -1;
         if (this.keyState.right || this.touchDir === 1) dir = 1;
 
-        const steerSpeed = this.width * 1.5 * dt; // Super Fast Responsive Steering
+        const steerSpeed = this.width * 1.5 * dt;
         this.player.x += dir * steerSpeed;
 
         if (this.player.x < this.roadLeft + 6) this.player.x = this.roadLeft + 6;
@@ -1005,7 +1095,6 @@ const Engine = {
         this.distance += this.speed * dt * 8;
         this.score += Math.floor(this.speed * dt * 15);
 
-        // Check Victory Finish Line
         if (this.distance >= this.targetDistance) {
             this.gameWin();
             return;
@@ -1108,23 +1197,31 @@ const Engine = {
     gameWin() {
         this.isRunning = false;
         audio.stopMusic();
-        this.score += 500; // Win bonus
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
+        this.score += 500;
+
+        // Unlock next level up to 1000
+        if (this.currentLevel >= this.maxUnlockedLevel && this.maxUnlockedLevel < 1000) {
+            this.maxUnlockedLevel = this.currentLevel + 1;
         }
+
         this.saveData();
 
+        document.getElementById('win-desc').innerText = `أتممت المستوى ${this.currentLevel} بنجاح! 🎉`;
         document.getElementById('win-score').innerText = this.score;
         document.getElementById('win-coins').innerText = this.coins;
+
+        if (this.currentLevel >= 1000) {
+            document.getElementById('btn-next-level').innerText = 'أنهيت جميع المستويات! 🏆';
+        } else {
+            document.getElementById('btn-next-level').innerText = `المستوى ${this.currentLevel + 1} ▶️`;
+        }
+
         document.getElementById('screen-win').classList.remove('hidden');
     },
 
     gameOver(reason) {
         this.isRunning = false;
         audio.stopMusic();
-        if (this.score > this.highScore) {
-            this.highScore = this.score;
-        }
         this.saveData();
 
         document.getElementById('gameover-reason').innerText = reason;
@@ -1135,11 +1232,10 @@ const Engine = {
     },
 
     updateHUD() {
-        document.getElementById('hud-score').innerText = this.score;
+        document.getElementById('hud-level').innerText = `${this.currentLevel} / 1000`;
         document.getElementById('hud-coins').innerText = `🪙 ${this.coins}`;
         document.getElementById('fuel-bar').style.width = `${this.fuel}%`;
 
-        // Update finish line progress bar
         const progressPct = Math.min(100, (this.distance / this.targetDistance) * 100);
         document.getElementById('progress-bar').style.width = `${progressPct}%`;
     },
