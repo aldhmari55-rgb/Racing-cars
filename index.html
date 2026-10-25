@@ -94,7 +94,6 @@
             line-height: 1.5;
         }
 
-        /* Custom Futuristic Buttons */
         .btn {
             position: relative;
             background: linear-gradient(135deg, #00f0ff, #0072ff);
@@ -124,6 +123,12 @@
             box-shadow: 0 0 20px rgba(255, 0, 127, 0.4);
         }
 
+        .btn-win {
+            background: linear-gradient(135deg, #00ff66, #00b33c);
+            color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 102, 0.5);
+        }
+
         .btn-outline {
             background: transparent;
             color: #00f0ff;
@@ -131,7 +136,6 @@
             box-shadow: none;
         }
 
-        /* HUD Header */
         #hud {
             position: absolute;
             top: 0;
@@ -183,7 +187,28 @@
             transition: width 0.15s ease-out;
         }
 
-        /* Touch Controls Area */
+        /* Progress Bar To Finish Line */
+        #progress-container {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 8px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(0,240,255,0.3);
+            z-index: 10;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00f0ff, #00ff66);
+            transition: width 0.1s linear;
+        }
+
         #touch-controls {
             position: absolute;
             bottom: 20px;
@@ -236,7 +261,6 @@
             background: rgba(255, 0, 127, 0.4);
         }
 
-        /* Top Action Bar */
         .top-bar {
             position: absolute;
             top: 15px;
@@ -262,7 +286,6 @@
             backdrop-filter: blur(4px);
         }
 
-        /* Car Garage Grid */
         .garage-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -299,10 +322,9 @@
             background: transparent;
         }
 
-        /* Banner Nitro Alert */
         #nitro-banner {
             position: absolute;
-            top: 75px;
+            top: 85px;
             width: 100%;
             text-align: center;
             font-size: 1.8rem;
@@ -322,13 +344,11 @@
 <div id="game-container">
     <canvas id="gameCanvas"></canvas>
 
-    <!-- Utility Top Icons -->
     <div class="top-bar">
         <button id="btn-pause" class="icon-btn">⏸️</button>
         <button id="btn-audio" class="icon-btn">🔊</button>
     </div>
 
-    <!-- HUD Bar -->
     <div id="hud">
         <div class="hud-card">
             <span class="hud-lbl">النقاط</span>
@@ -346,9 +366,13 @@
         </div>
     </div>
 
+    <!-- Finish Line Progress -->
+    <div id="progress-container">
+        <div id="progress-bar"></div>
+    </div>
+
     <div id="nitro-banner">⚡ سرعة خارقة! ⚡</div>
 
-    <!-- Touch Mobile Controls -->
     <div id="touch-controls">
         <div class="touch-group">
             <div id="btn-left" class="touch-btn">◀</div>
@@ -362,9 +386,9 @@
     <!-- Main Menu Screen -->
     <div id="screen-start" class="overlay">
         <h1>سباق النيون الأسرع</h1>
-        <p>قد سوبر كار رياضية حقيقية بأقصى سرعة، تفادَ السيارات واجمع النيترو والعملات!</p>
+        <p>مرحلة واحدة ممتعة وسهلة! اصل لخطي النهاية (1000م) وافز بالميدالية الذهبية 🏆</p>
         
-        <button id="btn-start" class="btn">ابدأ السباق 🚀</button>
+        <button id="btn-start" class="btn">ابدأ السباق السهل 🚀</button>
         <button id="btn-garage-open" class="btn btn-accent">الكراج والسيارات 🏎️</button>
 
         <div style="margin-top: 20px;">
@@ -390,6 +414,20 @@
         <button id="btn-restart-pause" class="btn btn-accent">إعادة المحاولة 🔄</button>
     </div>
 
+    <!-- Victory Screen -->
+    <div id="screen-win" class="overlay hidden">
+        <h1 style="color: #00ff66;">فوز ساحق! 🏆🎉</h1>
+        <p style="color: #00f0ff; font-weight: bold; font-size: 1.15rem;">لقد وصلت لخط النهاية بنجاح بنسبة 100%!</p>
+
+        <div style="margin: 12px 0; background: rgba(0,255,102,0.1); padding: 15px 30px; border-radius: 16px; border: 1px solid rgba(0,255,102,0.3);">
+            <p style="margin-bottom:6px;">النقاط الإجمالية: <span id="win-score" class="hud-val" style="color:#00ff66;">0</span></p>
+            <p style="margin-bottom:6px;">العملات المجمعة: <span id="win-coins" class="hud-val" style="color:#ffcc00;">0</span></p>
+        </div>
+
+        <button id="btn-restart-win" class="btn btn-win">العب مرة أخرى 🔄</button>
+        <button id="btn-menu-win" class="btn btn-outline">القائمة الرئيسية 🏠</button>
+    </div>
+
     <!-- Game Over Screen -->
     <div id="screen-gameover" class="overlay hidden">
         <h1 style="color: #ff0055;">انتهى السباق! 💥</h1>
@@ -401,16 +439,12 @@
             <p style="margin-bottom:0;">المسافة المقطوعة: <span id="go-distance" class="hud-val" style="color:#00f0ff;">0m</span></p>
         </div>
 
-        <button id="btn-restart" class="btn">سباق جديد 🔄</button>
+        <button id="btn-restart" class="btn">حاول مجدداً 🔄</button>
         <button id="btn-menu" class="btn btn-outline">القائمة الرئيسية 🏠</button>
     </div>
 </div>
 
 <script>
-/**
- * High Speed Synthwave Racer Engine with Dynamic Audio & Synthesized Music
- */
-
 class AudioFX {
     constructor() {
         this.ctx = null;
@@ -429,7 +463,6 @@ class AudioFX {
         }
     }
 
-    // High Energy Synthwave Electronic Music Synthesizer Loop (150 BPM)
     startMusic() {
         if (!this.enabled) return;
         this.init();
@@ -438,17 +471,15 @@ class AudioFX {
         this.musicStep = 0;
 
         const tempo = 150;
-        const stepTime = (60 / tempo) / 4; // 16th note interval
+        const stepTime = (60 / tempo) / 4;
 
-        // Bass Synth Sequence (Past the Red Track Motif)
-        const bassNotes = [110, 110, 130.81, 110, 146.83, 110, 130.81, 98.00]; // A2, C3, D3, G2
-        const leadNotes = [440, 0, 523.25, 440, 587.33, 0, 659.25, 523.25]; // A4, C5, D5, E5
+        const bassNotes = [110, 110, 130.81, 110, 146.83, 110, 130.81, 98.00];
+        const leadNotes = [440, 0, 523.25, 440, 587.33, 0, 659.25, 523.25];
 
         this.musicTimer = setInterval(() => {
             if (!this.isMusicPlaying || !this.enabled || !this.ctx) return;
             const now = this.ctx.currentTime;
 
-            // 1. Kick Drum (Every Quarter Note)
             if (this.musicStep % 4 === 0) {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
@@ -463,7 +494,6 @@ class AudioFX {
                 osc.stop(now + 0.12);
             }
 
-            // 2. Hi-Hat (Off-Beat)
             if (this.musicStep % 2 === 1) {
                 const bufferSize = this.ctx.sampleRate * 0.03;
                 const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
@@ -486,7 +516,6 @@ class AudioFX {
                 noise.start(now);
             }
 
-            // 3. Arpeggiated Driving Bass
             const bassFreq = bassNotes[Math.floor(this.musicStep / 2) % bassNotes.length];
             if (bassFreq > 0) {
                 const bassOsc = this.ctx.createOscillator();
@@ -509,7 +538,6 @@ class AudioFX {
                 bassOsc.stop(now + stepTime * 1.5);
             }
 
-            // 4. Synth Lead Melody Hook
             const leadFreq = leadNotes[this.musicStep % leadNotes.length];
             if (leadFreq > 0 && Math.random() > 0.2) {
                 const leadOsc = this.ctx.createOscillator();
@@ -610,12 +638,11 @@ class AudioFX {
 
 const audio = new AudioFX();
 
-// Realistic Car Vector Skins Data
 const CAR_DATABASE = [
     { id: 'lambo_cyan', name: 'سوبر إعصار', mainColor: '#00f0ff', accentColor: '#0055ff', spoiler: true, price: 0, unlocked: true },
-    { id: 'ferrari_red', name: 'البرق الأحمر', mainColor: '#ff0044', accentColor: '#ff6600', spoiler: true, price: 60, unlocked: false },
-    { id: 'porsche_yellow', name: 'الصقر الذهبي', mainColor: '#ffcc00', accentColor: '#ff8800', spoiler: false, price: 140, unlocked: false },
-    { id: 'hyper_purple', name: 'الفيبر النيون', mainColor: '#a000ff', accentColor: '#ff007f', spoiler: true, price: 250, unlocked: false }
+    { id: 'ferrari_red', name: 'البرق الأحمر', mainColor: '#ff0044', accentColor: '#ff6600', spoiler: true, price: 30, unlocked: false },
+    { id: 'porsche_yellow', name: 'الصقر الذهبي', mainColor: '#ffcc00', accentColor: '#ff8800', spoiler: false, price: 60, unlocked: false },
+    { id: 'hyper_purple', name: 'الفيبر النيون', mainColor: '#a000ff', accentColor: '#ff007f', spoiler: true, price: 100, unlocked: false }
 ];
 
 const Engine = {
@@ -628,7 +655,6 @@ const Engine = {
     roadLeft: 0,
     roadWidth: 0,
 
-    // Dynamics
     isRunning: false,
     isPaused: false,
     score: 0,
@@ -636,20 +662,19 @@ const Engine = {
     totalCoins: 0,
     highScore: 0,
     distance: 0,
+    targetDistance: 1000, // Easy Target Distance (1000 meters to win!)
     fuel: 100,
-    speed: 12,
-    baseSpeed: 12,
+    speed: 10,
+    baseSpeed: 10,
     nitroTimer: 0,
     shakeTimer: 0,
 
-    // Entities & VFX
     player: null,
     traffic: [],
     items: [],
     particles: [],
     speedLines: [],
 
-    // Inputs
     keyState: { left: false, right: false, nitro: false },
     touchDir: 0,
     touchNitro: false,
@@ -668,7 +693,6 @@ const Engine = {
         this.renderGarage();
         this.updateHUD();
 
-        // Main Loop
         let lastTime = performance.now();
         const loop = (now) => {
             const dt = Math.min((now - lastTime) / 1000, 0.1);
@@ -755,6 +779,7 @@ const Engine = {
 
         document.getElementById('screen-start').classList.add('hidden');
         document.getElementById('screen-gameover').classList.add('hidden');
+        document.getElementById('screen-win').classList.add('hidden');
         document.getElementById('screen-pause').classList.add('hidden');
     },
 
@@ -784,6 +809,7 @@ const Engine = {
 
         document.getElementById('btn-start').onclick = () => this.start();
         document.getElementById('btn-restart').onclick = () => this.start();
+        document.getElementById('btn-restart-win').onclick = () => this.start();
         document.getElementById('btn-restart-pause').onclick = () => this.start();
 
         document.getElementById('btn-pause').onclick = () => {
@@ -800,12 +826,8 @@ const Engine = {
             document.getElementById('screen-pause').classList.add('hidden');
         };
 
-        document.getElementById('btn-menu').onclick = () => {
-            this.isRunning = false;
-            audio.stopMusic();
-            document.getElementById('screen-gameover').classList.add('hidden');
-            document.getElementById('screen-start').classList.remove('hidden');
-        };
+        document.getElementById('btn-menu').onclick = () => this.goToMenu();
+        document.getElementById('btn-menu-win').onclick = () => this.goToMenu();
 
         document.getElementById('btn-audio').onclick = () => {
             audio.enabled = !audio.enabled;
@@ -825,6 +847,14 @@ const Engine = {
             document.getElementById('screen-start').classList.remove('hidden');
             document.getElementById('menu-highscore').innerText = this.highScore;
         };
+    },
+
+    goToMenu() {
+        this.isRunning = false;
+        audio.stopMusic();
+        document.getElementById('screen-gameover').classList.add('hidden');
+        document.getElementById('screen-win').classList.add('hidden');
+        document.getElementById('screen-start').classList.remove('hidden');
     },
 
     renderGarage() {
@@ -876,20 +906,19 @@ const Engine = {
     },
 
     spawnTraffic() {
-        if (Math.random() < 0.045) {
+        // Reduced frequency for easy gameplay
+        if (Math.random() < 0.02) {
             const lane = Math.floor(Math.random() * this.lanes);
             const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
-            const w = this.laneWidth * 0.60;
-            const h = w * 2.1;
+            const w = this.laneWidth * 0.55;
+            const h = w * 2.0;
 
-            const overlap = this.traffic.some(t => Math.abs(t.x - (laneX - w / 2)) < 15 && t.y < 180);
+            const overlap = this.traffic.some(t => Math.abs(t.x - (laneX - w / 2)) < 15 && t.y < 220);
             if (!overlap) {
                 const palette = [
                     { main: '#ff2a2a', accent: '#880000' },
                     { main: '#00e5ff', accent: '#005588' },
-                    { main: '#ffcc00', accent: '#886600' },
-                    { main: '#a020f0', accent: '#400080' },
-                    { main: '#ffffff', accent: '#666666' }
+                    { main: '#ffcc00', accent: '#886600' }
                 ];
                 const skin = palette[Math.floor(Math.random() * palette.length)];
                 this.traffic.push({
@@ -897,7 +926,7 @@ const Engine = {
                     y: -h - 40,
                     width: w,
                     height: h,
-                    speed: Math.random() * 3 + 4,
+                    speed: Math.random() * 2 + 2, // Very Slow Enemy Cars
                     mainColor: skin.main,
                     accentColor: skin.accent,
                     spoiler: Math.random() > 0.4
@@ -907,18 +936,19 @@ const Engine = {
     },
 
     spawnItems() {
-        if (Math.random() < 0.025) {
+        // Increased frequency for coins, fuel, and nitro!
+        if (Math.random() < 0.07) {
             const lane = Math.floor(Math.random() * this.lanes);
             const laneX = this.roadLeft + (lane + 0.5) * this.laneWidth;
             const rand = Math.random();
             let type = 'coin';
-            if (rand < 0.25) type = 'fuel';
-            else if (rand < 0.38) type = 'nitro';
+            if (rand < 0.35) type = 'fuel';
+            else if (rand < 0.60) type = 'nitro';
 
             this.items.push({
                 x: laneX,
                 y: -30,
-                radius: 14,
+                radius: 15,
                 type: type
             });
         }
@@ -931,11 +961,11 @@ const Engine = {
         const isNitroActive = this.nitroTimer > 0 || manualNitro;
 
         if (manualNitro) {
-            this.fuel -= dt * 6.0;
+            this.fuel -= dt * 2.0; // Minimal fuel cost
         }
 
         if (isNitroActive) {
-            this.speed = this.baseSpeed * 2.0;
+            this.speed = this.baseSpeed * 2.2;
             this.nitroTimer = Math.max(0, this.nitroTimer - dt);
             document.getElementById('nitro-banner').style.opacity = '1';
 
@@ -947,20 +977,13 @@ const Engine = {
                 life: 0.25,
                 color: Math.random() > 0.5 ? '#ff007f' : '#00f0ff'
             });
-            this.particles.push({
-                x: this.player.x + this.player.width * 0.7 + (Math.random() * 4 - 2),
-                y: this.player.y + this.player.height,
-                vx: (Math.random() - 0.5) * 2,
-                vy: Math.random() * 12 + 10,
-                life: 0.25,
-                color: Math.random() > 0.5 ? '#ff007f' : '#00f0ff'
-            });
         } else {
-            this.speed = this.baseSpeed + Math.floor(this.score / 600) * 0.8;
+            this.speed = this.baseSpeed;
             document.getElementById('nitro-banner').style.opacity = '0';
         }
 
-        this.fuel -= dt * 2.2;
+        // Very slow fuel depletion (Easy Mode)
+        this.fuel -= dt * 0.8;
         if (this.fuel <= 0) {
             this.fuel = 0;
             this.gameOver('نفذ الوقود بالكامل!');
@@ -971,7 +994,7 @@ const Engine = {
         if (this.keyState.left || this.touchDir === -1) dir = -1;
         if (this.keyState.right || this.touchDir === 1) dir = 1;
 
-        const steerSpeed = this.width * 1.1 * dt;
+        const steerSpeed = this.width * 1.5 * dt; // Super Fast Responsive Steering
         this.player.x += dir * steerSpeed;
 
         if (this.player.x < this.roadLeft + 6) this.player.x = this.roadLeft + 6;
@@ -979,21 +1002,27 @@ const Engine = {
             this.player.x = this.roadLeft + this.roadWidth - this.player.width - 6;
         }
 
-        this.distance += this.speed * dt * 6;
-        this.score += Math.floor(this.speed * dt * 12);
+        this.distance += this.speed * dt * 8;
+        this.score += Math.floor(this.speed * dt * 15);
+
+        // Check Victory Finish Line
+        if (this.distance >= this.targetDistance) {
+            this.gameWin();
+            return;
+        }
 
         this.spawnTraffic();
         this.spawnItems();
 
         for (let i = this.traffic.length - 1; i >= 0; i--) {
             const t = this.traffic[i];
-            t.y += (this.speed - t.speed + 4) * dt * 60 * 0.14;
+            t.y += (this.speed - t.speed + 3) * dt * 60 * 0.14;
 
             if (!isNitroActive &&
-                this.player.x < t.x + t.width - 4 &&
-                this.player.x + this.player.width > t.x + 4 &&
-                this.player.y < t.y + t.height - 4 &&
-                this.player.y + this.player.height > t.y + 4) {
+                this.player.x < t.x + t.width - 6 &&
+                this.player.x + this.player.width > t.x + 6 &&
+                this.player.y < t.y + t.height - 6 &&
+                this.player.y + this.player.height > t.y + 6) {
                 
                 this.triggerCrashEffect(this.player.x + this.player.width / 2, this.player.y + this.player.height / 2);
                 audio.playCrash();
@@ -1007,7 +1036,7 @@ const Engine = {
                 this.player.y + this.player.height > t.y) {
                 this.triggerCrashEffect(t.x + t.width / 2, t.y + t.height / 2);
                 this.traffic.splice(i, 1);
-                this.score += 80;
+                this.score += 100;
                 continue;
             }
 
@@ -1022,17 +1051,17 @@ const Engine = {
             const cy = Math.max(this.player.y, Math.min(item.y, this.player.y + this.player.height));
             const distSq = (item.x - cx) ** 2 + (item.y - cy) ** 2;
 
-            if (distSq < item.radius ** 2) {
+            if (distSq < (item.radius + 5) ** 2) {
                 if (item.type === 'coin') {
-                    this.coins += 1;
-                    this.totalCoins += 1;
-                    this.score += 25;
+                    this.coins += 2;
+                    this.totalCoins += 2;
+                    this.score += 30;
                     audio.playCoin();
                 } else if (item.type === 'fuel') {
-                    this.fuel = Math.min(100, this.fuel + 35);
+                    this.fuel = Math.min(100, this.fuel + 50);
                     audio.playFuel();
                 } else if (item.type === 'nitro') {
-                    this.nitroTimer = 4.5;
+                    this.nitroTimer = 6.0;
                     audio.playNitro();
                 }
                 this.items.splice(i, 1);
@@ -1051,7 +1080,7 @@ const Engine = {
         }
 
         this.speedLines.forEach(l => {
-            l.y += (this.speed * 2.5) + l.speed;
+            l.y += (this.speed * 2.2) + l.speed;
             if (l.y > this.height) {
                 l.y = -l.length;
                 l.x = Math.random() * this.width;
@@ -1076,6 +1105,20 @@ const Engine = {
         }
     },
 
+    gameWin() {
+        this.isRunning = false;
+        audio.stopMusic();
+        this.score += 500; // Win bonus
+        if (this.score > this.highScore) {
+            this.highScore = this.score;
+        }
+        this.saveData();
+
+        document.getElementById('win-score').innerText = this.score;
+        document.getElementById('win-coins').innerText = this.coins;
+        document.getElementById('screen-win').classList.remove('hidden');
+    },
+
     gameOver(reason) {
         this.isRunning = false;
         audio.stopMusic();
@@ -1095,6 +1138,10 @@ const Engine = {
         document.getElementById('hud-score').innerText = this.score;
         document.getElementById('hud-coins').innerText = `🪙 ${this.coins}`;
         document.getElementById('fuel-bar').style.width = `${this.fuel}%`;
+
+        // Update finish line progress bar
+        const progressPct = Math.min(100, (this.distance / this.targetDistance) * 100);
+        document.getElementById('progress-bar').style.width = `${progressPct}%`;
     },
 
     render() {
